@@ -127,3 +127,19 @@ def parse_long_tweet(response):
     item = response.meta['item']
     item['content'] = data['longTextContent']
     yield item
+
+
+def parse_item_info(data):
+    """
+    解析用户信息
+    """
+    # 基础信息
+    item = {
+        "_id": str(data['id']),
+        "name": data['screen_name'],
+    }
+    keys = ['followers_count', 'friends_count', 'statuses_count']
+    for key in keys:
+        if key in data:
+            item[key] = data[key]
+    return item

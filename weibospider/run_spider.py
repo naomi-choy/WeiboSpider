@@ -17,22 +17,28 @@ from spiders.follower import FollowerSpider
 from spiders.user import UserSpider
 from spiders.fan import FanSpider
 from spiders.repost import RepostSpider
+from spiders.custom import CustomSpider
+import warnings
 
 if __name__ == '__main__':
-    mode = sys.argv[1]
-    os.environ['SCRAPY_SETTINGS_MODULE'] = 'settings'
-    settings = get_project_settings()
-    process = CrawlerProcess(settings)
-    mode_to_spider = {
-        'comment': CommentSpider,
-        'fan': FanSpider,
-        'follow': FollowerSpider,
-        'user': UserSpider,
-        'repost': RepostSpider,
-        'tweet_by_tweet_id': TweetSpiderByTweetID,
-        'tweet_by_user_id': TweetSpiderByUserID,
-        'tweet_by_keyword': TweetSpiderByKeyword,
-    }
-    process.crawl(mode_to_spider[mode])
-    # the script will block here until the crawling is finished
-    process.start()
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+
+        mode = sys.argv[1]
+        os.environ['SCRAPY_SETTINGS_MODULE'] = 'settings'
+        settings = get_project_settings()
+        process = CrawlerProcess(settings)
+        mode_to_spider = {
+            'comment': CommentSpider,
+            'fan': FanSpider,
+            'follow': FollowerSpider,
+            'user': UserSpider,
+            'repost': RepostSpider,
+            'tweet_by_tweet_id': TweetSpiderByTweetID,
+            'tweet_by_user_id': TweetSpiderByUserID,
+            'tweet_by_keyword': TweetSpiderByKeyword,
+            'custom': CustomSpider,
+        }
+        process.crawl(mode_to_spider[mode])
+        # the script will block here until the crawling is finished
+        process.start()

@@ -8,14 +8,14 @@ Created Time: 2020/4/14
 import json
 from scrapy import Spider
 from scrapy.http import Request
-from spiders.common import parse_user_info
+from spiders.common import parse_item_info
 
 
-class UserSpider(Spider):
+class CustomSpider(Spider):
     """
     微博用户信息爬虫
     """
-    name = "user_spider"
+    name = "custom_spider"
     base_url = "https://weibo.cn"
 
     def start_requests(self):
@@ -33,7 +33,8 @@ class UserSpider(Spider):
         网页解析
         """
         data = json.loads(response.text)
-        item = parse_user_info(data['data']['user'])
+        print(f'\n\n\n---unparsed data---\n{data}')
+        item = parse_item_info(data['data']['user'])
         url = f"https://weibo.com/ajax/profile/detail?uid={item['_id']}"
         yield Request(url, callback=self.parse_detail, meta={'item': item})
 
@@ -44,15 +45,7 @@ class UserSpider(Spider):
         """
         item = response.meta['item']
         data = json.loads(response.text)['data']
-        item['birthday'] = data.get('birthday', '')
-        if 'created_at' not in item:
-            item['created_at'] = data.get('created_at', '')
-        item['desc_text'] = data.get('desc_text', '')
-        item['ip_location'] = data.get('ip_location', '')
-        item['sunshine_credit'] = data.get('sunshine_credit', {}).get('level', '')
-        item['label_desc'] = [label['name'] for label in data.get('label_desc', [])]
-        if 'company' in data:
-            item['company'] = data['company']
-        if 'education' in data:
-            item['education'] = data['education']
+        print(f'\n\n\n----reponse data---\n{data}\n\n\n')
+        print(f'----item----\n{item}\n\n\n')
+
         yield item
