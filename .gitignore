@@ -143,4 +143,4 @@ cython_debug/
 
 # proj
 .output/
-.weibospider\cookie.txt
+.weibospider/cookie.txt
