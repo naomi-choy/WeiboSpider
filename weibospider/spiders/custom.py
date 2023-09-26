@@ -8,7 +8,7 @@ Created Time: 2020/4/14
 import json
 from scrapy import Spider
 from scrapy.http import Request
-from spiders.common import parse_item_info
+from spiders.common import parse_item_info, parse_tweet_info, parse_long_tweet
 
 
 class CustomSpider(Spider):
@@ -26,26 +26,36 @@ class CustomSpider(Spider):
         user_ids = ['5978791676']
         urls = [f'https://weibo.com/ajax/profile/info?uid={user_id}' for user_id in user_ids]
         for url in urls:
-            yield Request(url, callback=self.parse)
+            yield Request(url, callback=self.parse_user)
 
-    def parse(self, response, **kwargs):
+    def parse_user(self, response, **kwargs):
         """
         网页解析
         """
         data = json.loads(response.text)
-        print(f'\n\n\n---unparsed data---\n{data}')
+        print(f'\n\n---data---\n{data}\n\n')
         item = parse_item_info(data['data']['user'])
-        url = f"https://weibo.com/ajax/profile/detail?uid={item['_id']}"
-        yield Request(url, callback=self.parse_detail, meta={'item': item})
+        print(f'\n\n---item---\n{item}\n\n')
 
-    @staticmethod
-    def parse_detail(response):
-        """
-        解析详细数据
-        """
+        # get post content
+        url = f"https://weibo.com/ajax/statuses/mymblog?uid={item['_id']}&page=1"
+        yield Request(url, callback=self.parse_post, meta={'item': item, 'page_num': 1})
+
+
+    def parse_post(self, response, **kwargs):
         item = response.meta['item']
-        data = json.loads(response.text)['data']
-        print(f'\n\n\n----reponse data---\n{data}\n\n\n')
-        print(f'----item----\n{item}\n\n\n')
-
-        yield item
+        data = json.loads(response.text)
+        tweets = data['data']['list']
+        for tweet in tweets:
+            tweet_item = parse_tweet_info(tweet)
+            if tweet_item['isLongText']:
+                url = "https://weibo.com/ajax/statuses/longtext?id=" + tweet_item['mblogid']
+                yield Request(url, callback=parse_long_tweet, meta={'item': item})
+            else:
+                item['post_content'] = tweet_item
+                yield item
+        if tweets:
+            user_id, page_num = response.meta['item']['_id'], response.meta['page_num']
+            page_num += 1
+            url = f"https://weibo.com/ajax/statuses/mymblog?uid={user_id}&page={page_num}"
+            yield Request(url, callback=self.parse_post, meta={'item': item, 'page_num': page_num})

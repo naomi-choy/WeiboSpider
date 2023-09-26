@@ -125,7 +125,7 @@ def parse_long_tweet(response):
     """
     data = json.loads(response.text)['data']
     item = response.meta['item']
-    item['content'] = data['longTextContent']
+    item['post_content'] = data['longTextContent']
     yield item
 
 
@@ -137,8 +137,12 @@ def parse_item_info(data):
     item = {
         "_id": str(data['id']),
         "name": data['screen_name'],
+        "num_comment": None,
+        "comment_content": [],
+        "post_content": [],
+        "fan_info": [],
     }
-    keys = ['followers_count', 'friends_count', 'statuses_count']
+    keys = ['followers_count', 'statuses_count']
     for key in keys:
         if key in data:
             item[key] = data[key]
