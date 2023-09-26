@@ -142,5 +142,5 @@ cython_debug/
 .idea/
 
 # proj
-.output/
+.output/*
 .weibospider/cookie.txt
